@@ -1,15 +1,22 @@
 services:
 
   pangolin:
-    image: fosrl/pangolin:${PANGOLIN_VERSION:-latest}
+    image: fosrl/pangolin:postgresql-${PANGOLIN_VERSION:-latest}
     env_file: environment.d/pangolin.env
+    environment:
+      SERVER_SECRET: ${SERVER_SECRET}
+    depends_on:
+      database:
+        condition: service_healthy
     volumes:
-      - ./volumes/pangolin:/app/config
+      - ./volumes/config:/app/config
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
       interval: "3s"
       timeout: "3s"
       retries: 5
+    labels:
+      com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
 
   gerbil:
@@ -20,7 +27,7 @@ services:
         condition: service_healthy
     cap_add: [NET_ADMIN, SYS_MODULE]
     volumes:
-      - ./volumes/gerbil:/var/config
+      - ./volumes/config:/var/config
     ports:
       - ${WIREGUARD_PORT:-51820}:51820/udp
       - ${SSL_PORT:-443}:443
@@ -30,6 +37,8 @@ services:
       - --generateAndSaveKeyTo=/var/config/key
       - --remoteConfig=http://pangolin:3001/api/v1/gerbil/get-config
       - --reportBandwidthTo=http://pangolin:3001/api/v1/gerbil/receive-bandwidth
+    labels:
+      com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
 
   traefik:
@@ -40,11 +49,31 @@ services:
       pangolin:
         condition: service_healthy
     volumes:
-      - ./volumes/traefik:/etc/traefik:ro # Volume to store the Traefik configuration
+      - ./volumes/config/traefik:/etc/traefik:ro # Volume to store the Traefik configuration
       - ${TRAEFIK_CERTS_VOLUME:-traefik-cert}:/letsencrypt # Volume to store the Let's Encrypt certificates
     command:
       - --configFile=/etc/traefik/traefik_config.yml
+    labels:
+      com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-17}
+    env_file: environment.d/database.env
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-fossorial}
+      POSTGRES_USER: ${DATABASE_USER:-fossorial}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - ./volumes/database:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: pg_isready -d ${DATABASE_NAME:-fossorial} -U ${DATABASE_USER:-fossorial}
+    labels:
+      com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+
+  # TODO: watchtower
 
 networks:
   default:
