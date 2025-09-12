@@ -14,10 +14,7 @@ services:
       - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/dynamic
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
-      interval: "3s"
-      timeout: "3s"
-      retries: 5
+      test: curl -f http://localhost:3001/api/v1/
     labels:
       com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
