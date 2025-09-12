@@ -2,12 +2,10 @@ services:
 
   pangolin:
     image: fosrl/pangolin:postgresql-${PANGOLIN_VERSION:-latest}
+    depends_on: [database]
     env_file: environment.d/pangolin.env
     environment:
       SERVER_SECRET: ${SERVER_SECRET}
-    depends_on:
-      database:
-        condition: service_healthy
     volumes:
       - ./volumes/config:/app/config
       - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates
@@ -21,10 +19,8 @@ services:
 
   gerbil:
     image: fosrl/gerbil:${GERBIL_VERSION:-latest}
+    depends_on: [pangolin]
     env_file: environment.d/gerbil.env
-    depends_on:
-      pangolin:
-        condition: service_healthy
     cap_add: [NET_ADMIN, SYS_MODULE]
     volumes:
       - ./volumes/config:/var/config
@@ -44,11 +40,9 @@ services:
 
   traefik:
     image: traefik:${TRAEFIK_VERSION:-latest}
+    depends_on: [pangolin]
     env_file: environment.d/traefik.env
     network_mode: service:gerbil
-    depends_on:
-      pangolin:
-        condition: service_healthy
     volumes:
       - ./volumes/config/traefik:/etc/traefik:ro
       - ${TRAEFIK_CERTS_VOLUME:-traefik-certs}:/letsencrypt
@@ -80,6 +74,7 @@ services:
 
   database-backups:
     image: prodrigestivill/postgres-backup-local:${POSTGRES_BACKUP_VERSION:-latest}
+    depends_on: [database]
     env_file: environment.d/database-backups.env
     environment:
       POSTGRES_HOST: ${DATABASE_HOST:-database}
@@ -91,7 +86,6 @@ services:
     volumes:
       - ${DATABASE_BACKUPS_PATH:-./volumes/backups}:/backups
       - /etc/localtime:/etc/localtime:ro
-    depends_on: [database]
     restart: unless-stopped
 
   watchtower:
