@@ -10,6 +10,8 @@ services:
         condition: service_healthy
     volumes:
       - ./volumes/config:/app/config
+      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates
+      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/dynamic
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/"]
@@ -38,8 +40,7 @@ services:
     command:
       - --reachableAt=http://gerbil:3003
       - --generateAndSaveKeyTo=/var/config/key
-      - --remoteConfig=http://pangolin:3001/api/v1/gerbil/get-config
-      - --reportBandwidthTo=http://pangolin:3001/api/v1/gerbil/receive-bandwidth
+      - --remoteConfig=http://pangolin:3001/api/v1/
     labels:
       com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
@@ -52,8 +53,11 @@ services:
       pangolin:
         condition: service_healthy
     volumes:
-      - ./volumes/config/traefik:/etc/traefik:ro # Volume to store the Traefik configuration
-      - ${TRAEFIK_CERTS_VOLUME:-traefik-cert}:/letsencrypt # Volume to store the Let's Encrypt certificates
+      - ./volumes/config/traefik:/etc/traefik:ro
+      - ${TRAEFIK_CERTS_VOLUME:-traefik-certs}:/letsencrypt
+      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates:ro
+      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/dynamic:ro
+
       - /etc/localtime:/etc/localtime:ro
     command:
       - --configFile=/etc/traefik/traefik_config.yml
@@ -106,4 +110,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  traefik-cert: {}
+  pangolin-data: {}
+  traefik-certs: {}
