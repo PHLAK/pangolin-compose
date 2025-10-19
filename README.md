@@ -10,7 +10,7 @@ Installation
 
   1. Clone the repository
 
-         git clone git@github.com:PHLAK/fossorial-compose.git
+         git clone git@github.com:PHLAK/pangolin-compose.git
 
   2. Initialize the configuration files
 

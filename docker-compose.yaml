@@ -60,14 +60,14 @@ services:
     image: postgres:${POSTGRES_VERSION:-17}
     env_file: environment.d/database.env
     environment:
-      POSTGRES_DB: ${DATABASE_NAME:-fossorial}
-      POSTGRES_USER: ${DATABASE_USER:-fossorial}
+      POSTGRES_DB: ${DATABASE_NAME:-pangolin}
+      POSTGRES_USER: ${DATABASE_USER:-pangolin}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
       - ./volumes/database:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: pg_isready -d ${DATABASE_NAME:-fossorial} -U ${DATABASE_USER:-fossorial}
+      test: pg_isready -d ${DATABASE_NAME:-pangolin} -U ${DATABASE_USER:-pangolin}
     labels:
       com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
@@ -78,8 +78,8 @@ services:
     env_file: environment.d/database-backups.env
     environment:
       POSTGRES_HOST: ${DATABASE_HOST:-database}
-      POSTGRES_DB: ${DATABASE_NAME:-fossorial}
-      POSTGRES_USER: ${DATABASE_USER:-fossorial}
+      POSTGRES_DB: ${DATABASE_NAME:-pangolin}
+      POSTGRES_USER: ${DATABASE_USER:-pangolin}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_EXTRA_OPTS: '--clean --if-exists'
       BACKUP_DIR: /backups
