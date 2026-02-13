@@ -19,7 +19,9 @@ services:
 
   gerbil:
     image: fosrl/gerbil:${GERBIL_VERSION:-latest}
-    depends_on: [pangolin]
+    depends_on:
+      pangolin:
+        condition: service_healthy
     env_file: environment.d/gerbil.env
     cap_add: [NET_ADMIN, SYS_MODULE]
     volumes:
@@ -40,7 +42,9 @@ services:
 
   traefik:
     image: traefik:${TRAEFIK_VERSION:-latest}
-    depends_on: [pangolin]
+    depends_on:
+      pangolin:
+        condition: service_healthy
     env_file: environment.d/traefik.env
     network_mode: service:gerbil
     volumes:
@@ -48,7 +52,6 @@ services:
       - ${TRAEFIK_CERTS_VOLUME:-traefik-certs}:/letsencrypt
       - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates:ro
       - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/dynamic:ro
-
       - /etc/localtime:/etc/localtime:ro
     command:
       - --configFile=/etc/traefik/traefik_config.yml
