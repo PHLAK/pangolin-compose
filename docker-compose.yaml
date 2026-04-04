@@ -1,7 +1,7 @@
 services:
 
   pangolin:
-    image: fosrl/pangolin:${PANGOLIN_VERSION:postgresql-latest}
+    image: fosrl/pangolin:${PANGOLIN_VERSION:-postgresql-latest}
     depends_on: [database]
     env_file: environment.d/pangolin.env
     environment:
