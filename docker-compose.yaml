@@ -6,6 +6,7 @@ services:
     env_file: environment.d/pangolin.env
     environment:
       SERVER_SECRET: ${SERVER_SECRET}
+      POSTGRES_CONNECTION_STRING: postgresql://${DATABASE_USER:-pangolin}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME:-pangolin}
     volumes:
       - ./volumes/config:/app/config
       - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates
@@ -23,6 +24,8 @@ services:
       pangolin:
         condition: service_healthy
     env_file: environment.d/gerbil.env
+    environment:
+      POSTGRES_CONNECTION_STRING: postgresql://${DATABASE_USER:-pangolin}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME:-pangolin}
     cap_add: [NET_ADMIN, SYS_MODULE]
     volumes:
       - ./volumes/config:/var/config
