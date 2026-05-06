@@ -8,9 +8,7 @@ services:
       SERVER_SECRET: ${SERVER_SECRET}
       POSTGRES_CONNECTION_STRING: postgresql://${DATABASE_USER:-pangolin}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME:-pangolin}
     volumes:
-      - ./volumes/config:/app/config
-      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates
-      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/dynamic
+      - ${PANGOLIN_CONFIG_PATH:-./volumes/config}:/app/config
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: curl -f http://localhost:3001/api/v1/
@@ -28,7 +26,7 @@ services:
       POSTGRES_CONNECTION_STRING: postgresql://${DATABASE_USER:-pangolin}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME:-pangolin}
     cap_add: [NET_ADMIN, SYS_MODULE]
     volumes:
-      - ./volumes/config:/var/config
+      - ${PANGOLIN_CONFIG_PATH:-./volumes/config}:/var/config
       - /etc/localtime:/etc/localtime:ro
     ports:
       - ${HTTP_PORT:-127.0.0.1:80}:80
@@ -51,13 +49,10 @@ services:
     env_file: environment.d/traefik.env
     network_mode: service:gerbil
     volumes:
-      - ./volumes/config/traefik:/etc/traefik:ro
-      - ${TRAEFIK_CERTS_VOLUME:-traefik-certs}:/letsencrypt
-      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/certificates:ro
-      - ${PANGOLIN_DATA_VOLUME:-pangolin-data}:/var/dynamic:ro
+      - ${PANGOLIN_CONFIG_PATH:-./volumes/config}/traefik:/etc/traefik:ro
+      - ${PANGOLIN_CONFIG_PATH:-./volumes/config}/letsencrypt:/letsencrypt
       - /etc/localtime:/etc/localtime:ro
-    command:
-      - --configFile=/etc/traefik/traefik_config.yml
+    command: [--configFile=/etc/traefik/traefik_config.yml]
     labels:
       com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
@@ -70,7 +65,7 @@ services:
       POSTGRES_USER: ${DATABASE_USER:-pangolin}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
-      - ./volumes/database:/var/lib/postgresql/data
+      - ${DATABASE_DATA_PATH:-./volumes/database}:/var/lib/postgresql/data
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: pg_isready -d ${DATABASE_NAME:-pangolin} -U ${DATABASE_USER:-pangolin}
@@ -105,7 +100,3 @@ services:
     labels:
       com.centurylinklabs.watchtower.scope: ${COMPOSE_PROJECT_NAME}
     restart: unless-stopped
-
-volumes:
-  pangolin-data: {}
-  traefik-certs: {}
