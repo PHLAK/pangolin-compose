@@ -10,7 +10,7 @@ Installation
 
   1. Clone the repository
 
-         git clone git@github.com:PHLAK/pangolin-compose.git
+          git clone https://github.com/PHLAK/pangolin-compose.git
 
   2. Initialize the configuration files
 
@@ -33,6 +33,11 @@ Updating
 
          git pull --ff-only
 
-  2. Pull new images and restart containers
+  2. If necessary, initialize new configuration files
 
-         docker compose up -d --pull
+         make init
+
+  3. Pull new images and restart containers
+
+         docker compose pull
+         docker compose up -d
