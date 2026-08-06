@@ -52,8 +52,6 @@ services:
         condition: service_healthy
     env_file: environment.d/traefik.env
     network_mode: service:gerbil
-    extra_hosts:
-      - host.docker.internal:host-gateway
     volumes:
       - ${PANGOLIN_CONFIG_PATH:-./volumes/config}/traefik:/etc/traefik:ro
       - ${PANGOLIN_CONFIG_PATH:-./volumes/config}/letsencrypt:/letsencrypt
