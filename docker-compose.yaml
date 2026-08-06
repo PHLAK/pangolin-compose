@@ -7,6 +7,8 @@ services:
     environment:
       SERVER_SECRET: ${SERVER_SECRET}
       POSTGRES_CONNECTION_STRING: postgresql://${DATABASE_USER:-pangolin}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME:-pangolin}
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
       - ${PANGOLIN_CONFIG_PATH:-./volumes/config}:/app/config
       - /etc/localtime:/etc/localtime:ro
@@ -21,18 +23,20 @@ services:
     depends_on:
       pangolin:
         condition: service_healthy
+    cap_add: [NET_ADMIN, SYS_MODULE]
     env_file: environment.d/gerbil.env
     environment:
       POSTGRES_CONNECTION_STRING: postgresql://${DATABASE_USER:-pangolin}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME:-pangolin}
-    cap_add: [NET_ADMIN, SYS_MODULE]
-    volumes:
-      - ${PANGOLIN_CONFIG_PATH:-./volumes/config}:/var/config
-      - /etc/localtime:/etc/localtime:ro
+    extra_hosts:
+      - host.docker.internal:host-gateway
     ports:
       - ${HTTP_PORT:-127.0.0.1:80}:80
       - ${SSL_PORT:-127.0.0.1:443}:443
       - ${SITE_TUNNEL_PORT:-51820}:51820/udp
       - ${CLIENT_TUNNEL_PORT:-21820}:21820/udp
+    volumes:
+      - ${PANGOLIN_CONFIG_PATH:-./volumes/config}:/var/config
+      - /etc/localtime:/etc/localtime:ro
     command:
       - --reachableAt=http://gerbil:3003
       - --generateAndSaveKeyTo=/var/config/key
@@ -48,6 +52,8 @@ services:
         condition: service_healthy
     env_file: environment.d/traefik.env
     network_mode: service:gerbil
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
       - ${PANGOLIN_CONFIG_PATH:-./volumes/config}/traefik:/etc/traefik:ro
       - ${PANGOLIN_CONFIG_PATH:-./volumes/config}/letsencrypt:/letsencrypt
